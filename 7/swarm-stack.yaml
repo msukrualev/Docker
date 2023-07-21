@@ -1,0 +1,93 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  SSHKey:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Enter your keypair name
+
+  UserDataScript:
+    Type: String
+    Default: |
+      #!/bin/bash
+      yum update -y
+      amazon-linux-extras install docker -y
+      systemctl start docker
+      systemctl enable docker
+      usermod -a -G docker ec2-user
+      curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+Resources:
+  SwarmManager1:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-069aabeee6f53e7bf # new Amazon Linux 2 AMI ID
+      InstanceType: t2.micro
+      KeyName: !Ref SSHKey
+      UserData:
+        Fn::Base64: !Sub '${UserDataScript}'
+      SecurityGroupIds:
+        - !Ref SwarmSecurityGroup
+  SwarmManager2:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-069aabeee6f53e7bf
+      InstanceType: t2.micro
+      KeyName: !Ref SSHKey
+      UserData:
+        Fn::Base64: !Sub '${UserDataScript}'
+      SecurityGroupIds:
+        - !Ref SwarmSecurityGroup
+  SwarmManager3:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-069aabeee6f53e7bf
+      InstanceType: t2.micro
+      KeyName: !Ref SSHKey
+      UserData:
+        Fn::Base64: !Sub '${UserDataScript}'
+      SecurityGroupIds:
+        - !Ref SwarmSecurityGroup
+  SwarmWorker1:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-069aabeee6f53e7bf
+      InstanceType: t2.micro
+      KeyName: !Ref SSHKey
+      UserData:
+        Fn::Base64: !Sub '${UserDataScript}'
+      SecurityGroupIds:
+        - !Ref SwarmSecurityGroup
+  SwarmWorker2:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-069aabeee6f53e7bf
+      InstanceType: t2.micro
+      KeyName: !Ref SSHKey
+      UserData:
+        Fn::Base64: !Sub '${UserDataScript}'
+      SecurityGroupIds:
+        - !Ref SwarmSecurityGroup
+  SwarmSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Security group for Swarm instances'
+      SecurityGroupIngress:
+        - CidrIp: '0.0.0.0/0'
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+        - CidrIp: '0.0.0.0/0'
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+        - CidrIp: '0.0.0.0/0'
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+        - CidrIp: '0.0.0.0/0'
+          IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8100
+        - CidrIp: '0.0.0.0/0'
+          IpProtocol: tcp
+          FromPort: 2377
+          ToPort: 2377

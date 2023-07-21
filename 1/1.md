@@ -1,0 +1,428 @@
+# Hands-on Docker-01 : Docker Container Basic Operations
+
+Purpose of the this hands-on training is to give students the knowledge of basic operation on Docker containers.
+
+## Learning Outcomes
+
+At the end of the this hands-on training, students will be able to;
+
+- search for images in the docker hub,
+
+- list the help about the Docker commands,
+
+- list the running and stopped Docker containers,
+
+- understand the properties of Docker containers,
+
+- start, stop, and remove Docker containers,
+  
+- run in interactive mode.
+
+## Discover the Docker Hub
+
+- go to
+https://hub.docker.com
+
+- search for some images like
+
+nginx, apache, wordpress
+
+## Basic Container Commands of Docker
+
+- Use your host machine terminal or AWS EC2 terminal
+
+- Or with your Docker Hub credentials, you can use 
+https://labs.play-with-docker.com
+
+
+- If you use AWS EC2 then use the code below to install and start Docker
+- Launch a t2.micro, Amazon Linux 2 EC2 instance with SSH and HTTP anywhere firewall configured
+
+```bash
+#!/bin/bash
+yum update -y
+yum -y install docker
+service docker start
+usermod -a -G docker ec2-user
+chmod 666 /var/run/docker.sock
+```
+
+
+- Now let's check Docker version
+
+```bash
+docker version
+```
+
+- see the detailed information about Docker engine and containers
+
+```bash
+docker info
+```
+
+- Run either `docker` or `docker help` to see the help docs about docker commands.
+
+```bash
+docker help | less
+```
+
+- Run `docker COMMAND --help` to see more information about specific command.
+
+```bash
+docker run --help | less
+```
+
+
+- Run `hello-world` as a first image and container. To pull and run hello-world official image, use the following command.
+
+```bash
+docker run hello-world
+```
+
+- Show the list of all containers available on Docker machine and understand container properties.
+
+- To see the `running containers`;  
+
+```bash
+docker ps
+```
+
+- To see the `running and exited/stopped containers`;  
+
+```bash
+docker ps -a
+```
+
+- Download and run `ubuntu` container.
+
+```bash
+docker run -it ubuntu
+```
+
+- Display the os name on the container for the current user.
+
+```bash
+uname -a
+```
+
+- Display the shell name on the container for the current user.
+
+```bash
+echo $0
+```
+
+
+- Run the second `ubuntu` os with interactive shell open and name container as `backend` and show that this `ubuntu` container is different from the previous one.
+
+```bash
+docker run -i -t --name backend ubuntu
+```
+
+- Exit the `ubuntu` container and return to user shell.
+
+```bash
+exit # to stop the process
+```
+
+- Show the list of all containers again and understand the second `ubuntu` containers' properties and how the names of containers are given.
+
+```bash
+docker ps -a
+```
+
+- Connect to the interactive shell of running `ubuntuiki` container and `exit` afterwards.
+
+```bash
+docker start backend
+docker attach backend
+exit
+```
+
+- Show that `backend` container has stopped by listing all containers.
+
+```bash
+docker ps -a
+```
+
+- Show that we can get more information about `backend` container by using `docker inspect` command and see the properties.
+
+```bash
+docker inspect backend | less
+# Cikmak icin q veya crtl c'ya basin
+```
+
+- Delete the first container using its `ID`.
+
+```bash
+docker stop ContainerID && rm ContainerID
+```
+
+- Delete the second container using its name.
+
+```bash
+docker rm backend
+```
+
+- Or you can use `prune` command as well
+
+```bash
+docker container prune
+```
+
+- Show that both of containers are not listed anymore.
+
+```bash
+docker ps -a
+```
+
+- See if there are images 
+
+docker images
+docker image ls
+
+- Get more detail on one of the images using inspect
+
+docker image inspect imageID
+
+
+## Let us try some popular Docker images
+
+  docker pull rancher/cowsay
+  docker run imageID merhaba!
+
+- use a web server as a container
+
+  docker pull nginx:alpine
+  docker run -d -p hostport:containerport imageID
+ 
+  check the browser to see http://localhost
+
+- play supermario
+
+  #run a container without pulling it first
+  docker run -d -p 8600:8080 pengbai/docker-supermario
+
+- run a container with a command output
+
+  docker run alpine uname
+  docker run alpine ls
+
+## Let's pull a Mysql Database and run it as a container
+
+  docker pull mysql:latest
+  docker container run --detach --name mydb -e MYSQL_ROOT_PASSWORD=java-dev mysql:latest
+
+- enter the mysql container
+  docker exec -it {containerID} sh
+
+- enter the database client using the provided password then see the databases and tables
+  mysql -p
+
+
+- exit database container and see logs 
+
+  docker logs containerID
+
+## Docker as a Development Environment
+
+docker run -it ubuntu
+
+- use docker attach to attach a running container to shell
+ 
+docker attach {containerID}
+
+- use docker exec to attach a running container to shell
+
+docker exec -it {containerID} /bin/bash
+
+- when inside try
+
+root@4c00bb0a:/# figlet hello bash
+
+- see the error
+
+bash: figlet command not found
+
+- install it first, still inside the container
+
+root@4c00bb0a:/# apt-get update -y
+
+root@4c00bb0a:/# apt-get install figlet -y
+
+- exit the container
+
+- On host computer create a new folder hello-c
+
+- Put the code inside a file named hello.c
+
+```Hello.c
+int main() {
+    puts("Hello Docker World, this is B107!");
+    return 0;
+}
+```
+
+- Now, let's go back to the container to test inside the container if hello.c compiles
+
+- start the ubuntu container
+
+```bash
+docker start {containerID}
+```
+
+- attach container to shell
+
+```bash
+docker attach {containerID}
+```
+
+- use Ctlr -P-Q read escape sequence to return to bash terminal without exiting the container
+
+- in the terminal cd to the folder hello-c
+
+```bash
+cd .../hello-c
+```
+
+- copy hello.c file into the running container
+
+```bash
+docker cp hello.c {containerID}:/folder
+```
+
+- now attach to the container again
+
+```bash
+docker attach containerID
+```
+
+- inside the container install build-essential pack
+
+```bash
+apt-get install -y build-essential
+```
+
+- build the code
+
+```bash
+make hello
+```
+
+- run hello
+
+```bash
+./hello
+```
+
+- see that development and testing was successful
+
+
+## Docker as a Development Environment: This time, write a simple Java program in a Docker Container
+
+- First pull a Java Development Kit Image and run 
+
+docker pull amazoncorretto:8-alpine-full
+docker run -it amazoncorretto:8-alpine-full
+
+- inside the container, let's create a java file
+
+```bash
+cat > hello.java
+```
+- copy and paste the code 
+```bash
+class hello{  
+    public static void main(String args[]){  
+        System.out.println("Hello Java!");  
+    }  
+}
+```
+
+- press Ctrl and D to exit
+
+- check if the file is there
+```bash
+ls
+```
+- compile the file
+
+```bash
+javac hello.java
+```
+
+- see the compiled file
+
+```bash
+ls
+```
+
+- now run the file
+
+```bash
+java hello
+```
+
+- the output should be
+Hello Java!
+
+- we used a docker container, a container environment to develop a java app, all runtime, compiler etc. are inside like we did in AWS instance or like you do on your local computers.
+
+- now, type exit to exit the container.
+
+```bash
+exit
+```
+
+- see if the container is still running
+
+```bash
+docker ps
+```
+- see that it stopped
+- let's run it again
+
+```bash
+docker run -it amazoncorretto:8-alpine-full
+```
+
+-  check if the java files are there
+
+```bash
+/ # ls
+```
+
+- did you see that they are not there?
+
+- when a container stops, the files user worked on do not persist
+
+- however, solution to this exists, docker volumes can be created. docker volumes are folders on host computer.
+
+
+## View logs of a container
+
+- run a container that prints date and time each second
+
+docker run -d jpetazzo/clock
+
+
+- now see the logs of the container, still running
+
+docker logs --tail 1 --follow 8bb
+
+
+## Now that we finished, let's remove containers and images
+
+- Stop running containers
+
+  docker ps
+  docker stop
+
+- remove containers
+
+  docker ps -a
+  docker rm 
+
+- remove images
+
+  docker image ls
+  docker rmi imageID

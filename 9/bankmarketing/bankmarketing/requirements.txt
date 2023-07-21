@@ -1,0 +1,8 @@
+redis
+Flask
+joblib
+numpy
+pandas
+scikit-learn
+sklearn
+sklearn-utils
